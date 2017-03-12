@@ -819,7 +819,46 @@
                                                                 {datatype, integer},
                                                                 hidden
                                                                ]}.
+%% @doc CRL http fetch timeout
+%%
+%%     - listener.ssl.crl_fetch_timeout
+%%     - listener.wss.crl_fetch_timeout
+%%
+%% or on the listener level:
+%%
+%%     - listener.ssl.my_ssl_listener.crl_fetch_timeout
+%%     - listener.wss.my_wss_listener.crl_fetch_timeout
+{mapping, "listener.ssl.crl_fetch_timeout", "vmq_server.listeners", [
+                                                          {default, 5000},
+                                                          {datatype, integer},
+                                                          hidden
+                                                         ]}.
 
+{mapping, "listener.ssl.$name.crl_fetch_timeout", "vmq_server.listeners", [
+                                                                {default, 5000},
+                                                                {datatype, integer},
+                                                                hidden
+                                                               ]}.
+{mapping, "listener.wss.crl_fetch_timeout", "vmq_server.listeners", [
+                                                          {default, 5000},
+                                                          {datatype, integer},
+                                                          hidden
+                                                         ]}.
+{mapping, "listener.wss.$name.crl_fetch_timeout", "vmq_server.listeners", [
+                                                                {default, 5000},
+                                                                {datatype, integer},
+                                                                hidden
+                                                               ]}.
+{mapping, "listener.vmqs.$name.crl_fetch_timeout", "vmq_server.listeners", [
+                                                                {default, 5000},
+                                                                {datatype, integer},
+                                                                hidden
+                                                               ]}.
+{mapping, "listener.https.$name.crl_fetch_timeout", "vmq_server.listeners", [
+                                                                {default, 5000},
+                                                                {datatype, integer},
+                                                                hidden
+                                                               ]}.
 %% @doc Set the path to the PEM encoded server certificate
 %% on the protocol level or on the listener level:
 %%
@@ -1021,6 +1060,42 @@
                                                                              {datatype, flag},
                                                                              hidden
                                                                             ]}. 
+%% @doc Enable crl check
+%%
+%%     - listener.ssl.crl_check
+%%     - listener.wss.crl_check
+%%
+%% or on the listener level:
+%%
+%%     - listener.ssl.my_ssl_listener.crl_check
+%%     - listener.wss.my_wss_listener.crl_check
+{mapping, "listener.ssl.crl_check", "vmq_server.listeners", [
+                                                             {default, false},
+                                                             {datatype, {enum, [true, false, peer, best_effort]}},
+                                                             {commented, false}
+                                                            ]}.
+{mapping, "listener.ssl.$name.crl_check", "vmq_server.listeners", [
+                                                                   {datatype, {enum, [true, false, peer, best_effort]}},
+                                                                   hidden
+                                                                  ]}.
+{mapping, "listener.wss.crl_check", "vmq_server.listeners", [
+                                                             {default, false},
+                                                             {datatype, {enum, [true, false, peer, best_effort]}},
+                                                             hidden
+                                                            ]}.
+{mapping, "listener.wss.$name.crl_check", "vmq_server.listeners", [
+                                                                   {datatype, {enum, [true, false, peer, best_effort]}},
+                                                                   hidden
+                                                                  ]}.
+{mapping, "listener.vmqs.$name.crl_check", "vmq_server.listeners", [
+                                                                    {datatype, {enum, [true, false, peer, best_effort]}},
+                                                                    hidden
+                                                                   ]}.
+{mapping, "listener.https.$name.crl_check", "vmq_server.listeners", [
+                                                                     {datatype, {enum, [true, false, peer, best_effort]}},
+                                                                     hidden
+                                                                    ]}.
+
 %% @doc Configure the TLS protocol version (tlsv1, tlsv1.1, or tlsv1.2) to be 
 %% @doc Configure the TLS protocol version (tlsv1, tlsv1.1, or tlsv1.2) to be 
 %% used for either all configured SSL listeners or for a specific listener:
@@ -1129,6 +1204,7 @@
          ExtMapps = [%% ssl listener specific
                      "cafile", "capath", "depth", "certfile", "ciphers", "crlfile",
                      "keyfile", "require_certificate", "tls_version",
+                     "crl_check", "crl_fetch_timeout",
                      "use_identity_as_username",
                      %% http listener specific
                      "config_mod", "config_fun",
@@ -1211,11 +1287,13 @@
          {SSLIPs, SSLCAFiles} = lists:unzip(F("listener.ssl", "cafile", StrVal)),
          {SSLIPs, SSLCAPaths} = lists:unzip(F("listener.ssl", "capath", StrVal)),
          {SSLIPs, SSLDepths} = lists:unzip(F("listener.ssl", "depth", IntVal)),
+         {SSLIPs, SSLCrlFetchTimeout} = lists:unzip(F("listener.ssl", "crl_fetch_timeout", IntVal)),
          {SSLIPs, SSLCertFiles} = lists:unzip(F("listener.ssl", "certfile", StrVal)),
          {SSLIPs, SSLCiphers} = lists:unzip(F("listener.ssl", "ciphers", StrVal)),
          {SSLIPs, SSLCrlFiles} = lists:unzip(F("listener.ssl", "crlfile", StrVal)),
          {SSLIPs, SSLKeyFiles} = lists:unzip(F("listener.ssl", "keyfile", StrVal)),
          {SSLIPs, SSLRequireCerts} = lists:unzip(F("listener.ssl", "require_certificate", BoolVal)),
+         {SSLIPs, SSLCrlCheck} = lists:unzip(F("listener.ssl", "crl_check", AtomVal)),
          {SSLIPs, SSLVersions} = lists:unzip(F("listener.ssl", "tls_version", AtomVal)),
          {SSLIPs, SSLUseIdents} = lists:unzip(F("listener.ssl", "use_identity_as_username", BoolVal)),
 
@@ -1223,11 +1301,13 @@
          {WS_SSLIPs, WS_SSLCAFiles} = lists:unzip(F("listener.wss", "cafile", StrVal)),
          {WS_SSLIPs, WS_SSLCAPaths} = lists:unzip(F("listener.wss", "capath", StrVal)),
          {WS_SSLIPs, WS_SSLDepths} = lists:unzip(F("listener.wss", "depth", IntVal)),
+         {WS_SSLIPs, WS_SSLCrlFetchTimeout} = lists:unzip(F("listener.wss", "crl_fetch_timeout", IntVal)),
          {WS_SSLIPs, WS_SSLCertFiles} = lists:unzip(F("listener.wss", "certfile", StrVal)),
          {WS_SSLIPs, WS_SSLCiphers} = lists:unzip(F("listener.wss", "ciphers", StrVal)),
          {WS_SSLIPs, WS_SSLCrlFiles} = lists:unzip(F("listener.wss", "crlfile", StrVal)),
          {WS_SSLIPs, WS_SSLKeyFiles} = lists:unzip(F("listener.wss", "keyfile", StrVal)),
          {WS_SSLIPs, WS_SSLRequireCerts} = lists:unzip(F("listener.wss", "require_certificate", BoolVal)),
+         {WS_SSLIPs, WS_SSLCrlCheck} = lists:unzip(F("listener.wss", "crl_check", AtomVal)),
          {WS_SSLIPs, WS_SSLVersions} = lists:unzip(F("listener.wss", "tls_version", AtomVal)),
          {WS_SSLIPs, WS_SSLUseIdents} = lists:unzip(F("listener.wss", "use_identity_as_username", BoolVal)),
 
@@ -1235,22 +1315,26 @@
          {VMQ_SSLIPs, VMQ_SSLCAFiles} = lists:unzip(F("listener.vmqs", "cafile", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLCAPaths} = lists:unzip(F("listener.vmqs", "capath", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLDepths} = lists:unzip(F("listener.vmqs", "depth", IntVal)),
+         {VMQ_SSLIPs, VMQ_SSLCrlFetchTimeout} = lists:unzip(F("listener.vmqs", "crl_fetch_timeout", IntVal)),
          {VMQ_SSLIPs, VMQ_SSLCertFiles} = lists:unzip(F("listener.vmqs", "certfile", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLCiphers} = lists:unzip(F("listener.vmqs", "ciphers", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLCrlFiles} = lists:unzip(F("listener.vmqs", "crlfile", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLKeyFiles} = lists:unzip(F("listener.vmqs", "keyfile", StrVal)),
          {VMQ_SSLIPs, VMQ_SSLRequireCerts} = lists:unzip(F("listener.vmqs", "require_certificate", BoolVal)),
+         {VMQ_SSLIPs, VMQ_SSLCrlCheck} = lists:unzip(F("listener.vmqs", "crl_check", AtomVal)),
          {VMQ_SSLIPs, VMQ_SSLVersions} = lists:unzip(F("listener.vmqs", "tls_version", AtomVal)),
          
          % HTTPS
          {HTTP_SSLIPs, HTTP_SSLCAFiles} = lists:unzip(F("listener.https", "cafile", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLCAPaths} = lists:unzip(F("listener.https", "capath", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLDepths} = lists:unzip(F("listener.https", "depth", IntVal)),
+         {HTTP_SSLIPs, HTTP_SSLCrlFetchTimeout} = lists:unzip(F("listener.https", "crl_fetch_timeout", IntVal)),
          {HTTP_SSLIPs, HTTP_SSLCertFiles} = lists:unzip(F("listener.https", "certfile", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLCiphers} = lists:unzip(F("listener.https", "ciphers", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLCrlFiles} = lists:unzip(F("listener.https", "crlfile", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLKeyFiles} = lists:unzip(F("listener.https", "keyfile", StrVal)),
          {HTTP_SSLIPs, HTTP_SSLRequireCerts} = lists:unzip(F("listener.https", "require_certificate", BoolVal)),
+         {HTTP_SSLIPs, HTTP_SSLCrlCheck} = lists:unzip(F("listener.https", "crl_check", AtomVal)),
          {HTTP_SSLIPs, HTTP_SSLVersions} = lists:unzip(F("listener.https", "tls_version", AtomVal)),
 
          TCP = lists:zip(TCPIPs, MZip([TCPMaxConns, 
@@ -1276,11 +1360,13 @@
                                        SSLCAFiles, 
                                        SSLCAPaths, 
                                        SSLDepths,
+                                       SSLCrlFetchTimeout,
                                        SSLCertFiles, 
                                        SSLCiphers, 
                                        SSLCrlFiles, 
                                        SSLKeyFiles, 
-                                       SSLRequireCerts, 
+                                       SSLRequireCerts,
+                                       SSLCrlCheck,
                                        SSLVersions, 
                                        SSLUseIdents])),
          WSS = lists:zip(WS_SSLIPs, MZip([WS_SSLMaxConns, 
@@ -1289,11 +1375,13 @@
                                           WS_SSLCAFiles, 
                                           WS_SSLCAPaths, 
                                           WS_SSLDepths,
+                                          WS_SSLCrlFetchTimeout,
                                           WS_SSLCertFiles, 
                                           WS_SSLCiphers, 
                                           WS_SSLCrlFiles, 
                                           WS_SSLKeyFiles, 
-                                          WS_SSLRequireCerts, 
+                                          WS_SSLRequireCerts,
+                                          WS_SSLCrlCheck,
                                           WS_SSLVersions, 
                                           WS_SSLUseIdents])),
          VMQS = lists:zip(VMQ_SSLIPs, MZip([VMQ_SSLMaxConns, 
@@ -1302,22 +1390,26 @@
                                           VMQ_SSLCAFiles, 
                                           VMQ_SSLCAPaths, 
                                           VMQ_SSLDepths,
+                                          VMQ_SSLCrlFetchTimeout,
                                           VMQ_SSLCertFiles, 
                                           VMQ_SSLCiphers, 
                                           VMQ_SSLCrlFiles, 
                                           VMQ_SSLKeyFiles, 
-                                          VMQ_SSLRequireCerts, 
+                                          VMQ_SSLRequireCerts,
+                                          VMQ_SSLCrlCheck,
                                           VMQ_SSLVersions])), 
          HTTPS = lists:zip(HTTP_SSLIPs, MZip([HTTP_SSLMaxConns, 
                                           HTTP_SSLNrOfAcceptors,
                                           HTTP_SSLCAFiles, 
                                           HTTP_SSLCAPaths, 
                                           HTTP_SSLDepths,
+                                          HTTP_SSLCrlFetchTimeout,
                                           HTTP_SSLCertFiles, 
                                           HTTP_SSLCiphers, 
                                           HTTP_SSLCrlFiles, 
                                           HTTP_SSLKeyFiles, 
-                                          HTTP_SSLRequireCerts, 
+                                          HTTP_SSLRequireCerts,
+                                          HTTP_SSLCrlCheck,
                                           HTTP_SSLVersions, 
                                           HTTP_SSLConfigMod,
                                           HTTP_SSLConfigFun])),

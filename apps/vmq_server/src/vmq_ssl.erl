@@ -61,6 +61,10 @@ opts(Opts) ->
               end},
      {verify_fun, {fun verify_ssl_peer/3,
                    proplists:get_value(crlfile, Opts, no_crl)}},
+     {crl_check, proplists:get_value(crl_check, Opts)},
+     {crl_cache, {ssl_crl_cache, 
+                  {internal, 
+                   [{http, proplists:get_value(crl_fetch_timeout, Opts)}]}}},
      {depth, proplists:get_value(depth, Opts, 1)},
      {versions, [proplists:get_value(tls_version, Opts, 'tlsv1.2')]}
      |
