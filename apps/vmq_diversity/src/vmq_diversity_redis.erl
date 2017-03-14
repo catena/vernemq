@@ -82,6 +82,7 @@ query(PoolName, Command) ->
 %%--------------------------------------------------------------------
 init(Args) ->
     {ok, Conn} = eredis:start_link(Args),
+    lager:info("redis connection ~p initialized with parameters: ", [Conn, Args]),
     {ok, #state{conn=Conn}}.
 
 %%--------------------------------------------------------------------
@@ -99,8 +100,10 @@ init(Args) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({q, Command}, _From, #state{conn=Conn}=State) ->
+    lager:debug("Received query: ~p.", [Command]),
     {reply, eredis:q(Conn, Command), State};
 handle_call({q_noreply, Command}, _From, #state{conn=Conn}=State) ->
+    lager:debug("Received query: ~p.", [Command]),
     {reply, eredis:q_noreply(Conn, Command), State};
 handle_call({qp, Pipeline}, _From, #state{conn=Conn}=State) ->
     {reply, eredis:qp(Conn, Pipeline), State};
@@ -173,7 +176,7 @@ cmd(As, St) ->
         [BPoolId, Command|Args] when is_binary(BPoolId)
                               and is_binary(Command) ->
             PoolId = pool_id(BPoolId, As, St),
-            case query(PoolId, re:split(Command, " ") ++ parse_args(Args, [], St)) of
+            case query(PoolId, re:split(Command, " ", [{parts, 2}]) ++ parse_args(Args, [], St)) of
                 {ok, <<"OK">>} ->
                     {[true], St};
                 {ok, undefined} ->
@@ -224,6 +227,7 @@ ensure_pool(As, St) ->
                     NewOptions =
                     [{size, Size}, {password, Password},
                      {host, Host}, {port, Port}, {database, Database}],
+                    lager:debug("Starting redis pool with options: ~p", [NewOptions]),
                     vmq_diversity_sup:start_all_pools(
                       [{redis, [{id, PoolId}, {opts, NewOptions}]}], []),
 

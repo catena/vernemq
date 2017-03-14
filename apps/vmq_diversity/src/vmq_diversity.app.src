@@ -83,8 +83,13 @@
                           {enabled, false},
                           {file, "priv/auth/redis.lua"}
                          ]}
+             ]},
+      {vmq_plugin_hooks, [
+              {vmq_diversity_plugin, auth_on_register, 5, []},
+              {vmq_diversity_plugin, auth_on_publish, 6, []},
+              {vmq_diversity_plugin, auth_on_subscribe, 3, []}
              ]}
 
   ]},
   {modules, []}
- ]}.
+]}.
