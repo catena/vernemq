@@ -79,6 +79,12 @@
          SyslogHandler ++ ConsoleHandlers ++ ErrorHandler
  end
 }.
+%%@doc Specify ssl session lifetime
+{mapping, "ssl", "ssl.session_lifetime", [
+                                          {default, 300},
+                                          {datatype, integer},
+                                          hidden
+                                         ]}.
 %% @doc Whether to enable Erlang's built-in error logger.
 {mapping, "sasl", "sasl.sasl_error_logger", [
                                              {default, off},
